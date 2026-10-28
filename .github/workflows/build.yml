@@ -15,6 +15,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: build
@@ -85,3 +86,10 @@ jobs:
           git add .
           git commit -q -m "Build from $SOURCE_REPO@${{ steps.source.outputs.sha }}"
           git push -f "https://x-access-token:${{ github.token }}@github.com/$GITHUB_REPOSITORY.git" release
+
+      # GitHub disables schedules after 60 days without repository activity;
+      # re-enabling the workflow resets that timer.
+      - name: Keep schedule alive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/$GITHUB_REPOSITORY/actions/workflows/build.yml/enable"
